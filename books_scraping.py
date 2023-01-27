@@ -1,60 +1,74 @@
 import requests
 from bs4 import BeautifulSoup
+import shutil
 
-category_url ='https://books.toscrape.com/catalogue/category/books/young-adult_21/'
+# Get html from url
+def extract_html(url):
+    response = requests.get(url)
+    if response.ok:
+        soup = BeautifulSoup(response.text, 'html.parser')
+    
+    return soup
+
+# Get the list of categories
+def extract_category(soup):
+    """
+    Extract the categories from the page
+    """
+    
+    list_categories = []
+    category_urls = soup.find('ul', class_='nav nav-list').find('ul').find_all('li')
+    for li in category_urls:
+        a = li.find('a')
+        href = a['href'].replace('../', 'https://books.toscrape.com/catalogue/category/books/')
+        list_categories.append(url + href)
+
+    return list_categories
 
 # Get number of page from a category
-def extract_pages_category(category_url):
+def extract_pages_category(soup):
     """
     Extract all pages from the category
     """
 
-    response = requests.get(category_url)
-    if response.ok:
-        soup = BeautifulSoup(response.text, 'html.parser')
+    pages = soup.find('li', class_='current')
+    if pages is not None:
+        pages = pages.text.strip()
+        y = pages[10]
+        y = int(y) + 1
+        list_page = []
+        
+        for i in range(1, y):
+            list_page.append(category_url.replace('index.html','') + f'page-{i}.html')
+        
+        return list_page
+
     else:
-        print('Category_Url Error code : ' + str(response))
-
-    pages = soup.find('li', class_='current').text.strip()
-    y = pages[10]
-    y = int(y) + 1
-    list_page = []
-    
-    for i in range(1, y):
-        list_page.append(category_url + f'page-{i}.html')
-    
-    return list_page
-
+        list_page = [category_url]
+        
+        return list_page
+   
 # Get books url from all category pages
-def extract_books_url(list_page):
+def extract_books_url(soup):
     """
     Get all the product_url from the full category
     """
-
+    
     list_url = []
-    for page in list_page:
-        response = requests.get(page)
-        if response.ok:
-            soup = BeautifulSoup(response.text, 'html.parser')
-        h3 = soup.find('ol', class_='row').find_all('h3')
-        for h in h3:
-            a = h.find('a')
-            href = a['href'].replace('../../../','https://books.toscrape.com/catalogue/')
-            list_url.append(href)
+    h3 = soup.find('ol', class_='row').find_all('h3')
+    
+    for h in h3:
+        a = h.find('a')
+        href = a['href'].replace('../../../','https://books.toscrape.com/catalogue/')
+        list_url.append(href)
 
     return list_url
         
 # Get data from a book
-def extract_data(product_url):
+def extract_data(soup):
     """
     Extract data from the book's url
     """
-    
-    response = requests.get(product_url)
-    if response.ok:
-        soup = BeautifulSoup(response.text, 'html.parser')
-    else:
-        print('Product_Url Error code :' + str(response))
     
     table = soup.find('table', {'class' : 'table table-striped'})
 
@@ -65,7 +79,13 @@ def extract_data(product_url):
     data['price_including_tax'] = table.find('th', text = 'Price (incl. tax)').find_next_sibling('td').text.replace('Â','')
     data['price_excluding_tax'] = table.find('th', text = 'Price (excl. tax)').find_next_sibling('td').text.replace('Â','')
     data['number_available'] = table.find('th', text = 'Availability').find_next_sibling('td').text
-    data['product_description'] = soup.find('div', {'id' : 'product_description'}).find_next_sibling('p').text.replace(',',';')
+    
+    description = soup.find('div', {'id' : 'product_description'})
+    if description is not None:
+        data['product_description'] = description.find_next_sibling('p').text.replace(',',';')
+    else:
+        data['product_description'] = ''
+    
 
     #Get the category from the directory
     directory = []
@@ -85,22 +105,39 @@ def extract_data(product_url):
 
     return data
  
+#Write Data in the .csv file
+def write_data_csv(data):
+    f.write(data['product_page_url'] + ',' + data['upc'] + ',' + data['title'] 
+    + ',' + data['price_including_tax'] + ',' + data['price_excluding_tax']
+    + ',' + data['number_available'] + ',' + data['product_description']
+    + ',' + data['category'] + ',' + data['review_rating'] 
+    + ',' + data['image_url'] + '\n')
+            
+
 if __name__ == '__main__':
-    list_page = extract_pages_category(category_url)
-    list_url = extract_books_url(list_page)
-    
-    #Write data in .csv file
-    with open('books.csv', 'w') as f:
-        column ='product_page_url,universal_product_code,title,price_including_tax,price_excluding_tax,number_available,product_description,category,review_rating,image_url\n'
-        f.write(column)
-        for product_url in list_url:
-            data = extract_data(product_url)
-            f.write(data['product_page_url'] + ',' + data['upc'] + ',' + data['title'] 
-            + ',' + data['price_including_tax'] + ',' + data['price_excluding_tax']
-            + ',' + data['number_available'] + ',' + data['product_description']
-            + ',' + data['category'] + ',' + data['review_rating'] 
-            + ',' + data['image_url'] + '\n')
-            print(data['title'])
+
+    url = 'https://books.toscrape.com/'
+    soup = extract_html(url)
+    list_categories = extract_category(soup)
+
+    for category_url in list_categories:
+        soup_category = extract_html(category_url)
+        list_page = extract_pages_category(soup_category)
+        
+        category_name = category_url.replace('https://books.toscrape.com/catalogue/category/books/','').replace('/index.html','') + '.csv'
+        with open(category_name, 'w') as f:
+            column ='product_page_url,universal_product_code,title,price_including_tax,price_excluding_tax,number_available,product_description,category,review_rating,image_url\n'
+            f.write(column)
+
+            for page in list_page:
+                soup_page = extract_html(page)
+                list_product_url = extract_books_url(soup_page)
+        
+                for product_url in list_product_url:
+                    soup_product = extract_html(product_url)
+                    data = extract_data(soup_product)
+                    write_data_csv(data)
+        shutil.move(category_name, '/Users/alex/Documents/Openclassrooms/Projets/Projet_2/Books-Scraping/CSV')
 
     print('Job done !')
 
