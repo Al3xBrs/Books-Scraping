@@ -4,10 +4,13 @@ import shutil
 import os
 
 
-def write_data_csv(data, f):
+from src.utils import *
+
+
+def write_data_csv(data, category_name):
     """# Write Data in the .csv file"""
 
-    with open(category_name, "a") as f:
+    with open(DEST_DATA + category_name, "a") as f:
         f.write(
             data["product_page_url"]
             + ","
@@ -38,5 +41,5 @@ def save_img(img_url):
     # img_name = data['title'] + '.png'.replace('/', '-')
     img_name = f"{data['title']}.png".replace("/", "-")
     if res.ok:
-        with open(img_name, "wb") as f:
+        with open(DEST_ASSETS + img_name, "wb") as f:
             shutil.copyfileobj(res.raw, f)

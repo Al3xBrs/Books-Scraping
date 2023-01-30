@@ -4,6 +4,9 @@ import shutil
 import os
 
 
+from src.utils import *
+
+
 def extract_category(soup):
     """
     Extract the categories from the page

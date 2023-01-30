@@ -6,25 +6,25 @@ from src.extract import *
 from src.save import *
 from src.scrap import *
 
+from src.utils import *
 
-def main():
+
+def main(url, category_url):
     """ main"""
 
-    url = "https://books.toscrape.com/"
     soup = extract_html(url)
+
     list_categories = extract_category(soup)
+
     state = 1
     for category_url in list_categories:
         soup_category = extract_html(category_url)
         list_page = extract_pages_category(soup_category)
 
         category_name = (
-            category_url.replace(
-                "https://books.toscrape.com/catalogue/category/books/", ""
-            ).replace("/index.html", "")
-            + ".csv"
+            category_url.replace(category_url, "").replace("/index.html", "") + ".csv"
         )
-        with open(category_name, "w") as f:
+        with open(DEST_DATA + category_name, "w") as f:
             column = "product_page_url,universal_product_code,title,price_including_tax,price_excluding_tax,number_available,product_description,category,review_rating,image_url\n"
             f.write(column)
 
@@ -45,4 +45,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(
+        url=BASE_URL,
+        category_url=CATEGORY_URL,
+    )
