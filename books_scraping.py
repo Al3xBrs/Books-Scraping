@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import shutil
+import os
 
 # Get html from url
 def extract_html(url):
@@ -105,21 +106,31 @@ def extract_data(soup):
 
     return data
  
-#Write Data in the .csv file
-def write_data_csv(data):
-    f.write(data['product_page_url'] + ',' + data['upc'] + ',' + data['title'] 
-    + ',' + data['price_including_tax'] + ',' + data['price_excluding_tax']
-    + ',' + data['number_available'] + ',' + data['product_description']
-    + ',' + data['category'] + ',' + data['review_rating'] 
-    + ',' + data['image_url'] + '\n')
-            
+# Write Data in the .csv file
+def write_data_csv(data,f):
+    with open(category_name, 'a') as f:
+        f.write(data['product_page_url'] + ',' + data['upc'] + ',' + data['title'] 
+        + ',' + data['price_including_tax'] + ',' + data['price_excluding_tax']
+        + ',' + data['number_available'] + ',' + data['product_description']
+        + ',' + data['category'] + ',' + data['review_rating'] 
+        + ',' + data['image_url'] + '\n')
+
+# Save img in the directory           
+def save_img(img_url):
+    res = requests.get(img_url, stream =  True)
+    # img_name = data['title'] + '.png'.replace('/', '-')
+    img_name = f"{data['title']}.png".replace('/', '-')
+    if res.ok:
+        with open(img_name, 'wb') as f:
+            shutil.copyfileobj(res.raw, f)
+        
 
 if __name__ == '__main__':
 
     url = 'https://books.toscrape.com/'
     soup = extract_html(url)
     list_categories = extract_category(soup)
-
+    state = 1
     for category_url in list_categories:
         soup_category = extract_html(category_url)
         list_page = extract_pages_category(soup_category)
@@ -129,16 +140,19 @@ if __name__ == '__main__':
             column ='product_page_url,universal_product_code,title,price_including_tax,price_excluding_tax,number_available,product_description,category,review_rating,image_url\n'
             f.write(column)
 
-            for page in list_page:
-                soup_page = extract_html(page)
-                list_product_url = extract_books_url(soup_page)
+        for page in list_page:
+            soup_page = extract_html(page)
+            list_product_url = extract_books_url(soup_page)
+    
+            for product_url in list_product_url:
+                soup_product = extract_html(product_url)
+                data = extract_data(soup_product)
+                save_img(data['image_url'])
+                write_data_csv(data,f)
+                
+                print('State :' + str(state))
+                state = state + 1
         
-                for product_url in list_product_url:
-                    soup_product = extract_html(product_url)
-                    data = extract_data(soup_product)
-                    write_data_csv(data)
-        shutil.move(category_name, '/Users/alex/Documents/Openclassrooms/Projets/Projet_2/Books-Scraping/CSV')
-
     print('Job done !')
 
 
