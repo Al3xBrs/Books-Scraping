@@ -1,15 +1,12 @@
 import requests
 from bs4 import BeautifulSoup
-import shutil
-import os
-
 
 from src.utils import *
 
 
 def extract_html(url):
     """
-    # Get html from url
+    Get html from url
     """
 
     response = requests.get(url)
