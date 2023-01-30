@@ -18,6 +18,7 @@ def main(url, category_url):
 
     state = 1
     for category_url in list_categories:
+
         soup_category = extract_html(category_url)
         list_page = extract_pages_category(soup_category)
 
