@@ -1,78 +1,100 @@
-import requests
-from bs4 import BeautifulSoup
-import shutil
-import os
-
-
 from src.utils import *
+from src.scrap import extract_html
+from bs4 import BeautifulSoup
 
 
-def extract_category(soup):
+def extract_data_category(category_url):
     """
-    Extract the categories from the page
-    # Get the list of categories
+    Extract data from the category
+    """
 
+    category = {}
+    soup = extract_html(category_url)
+    category['name'] = soup.find('li', class_='active').text
+    category['pages'] = extract_pages_category(category_url)
+
+    return category
+
+
+def extract_url_categories(url):
+    """
+    Extract all categories url
     """
 
     list_categories = []
-    category_urls = soup.find("ul", class_="nav nav-list").find("ul").find_all("li")
-    for li in category_urls:
+    soup = extract_html(url)
+    categories_url = soup.find(
+        "ul", class_="nav nav-list").find("ul").find_all("li")
+
+    for li in categories_url:
         a = li.find("a")
-        href = a["href"].replace(
-            "../", "https://books.toscrape.com/catalogue/category/books/"
-        )
-        list_categories.append(url + href)
+        href = BASE_URL + \
+            a["href"]
+
+        list_categories.append(href)
 
     return list_categories
 
 
-def extract_pages_category(soup):
+def extract_products_urls(list_page):
     """
-    # Get number of page from a category
+    Extract url products page from each category page
+    """
+
+    for page in list_page:
+        soup_page = extract_html(page)
+        list_products_url = extract_books_url(soup_page)
+
+    return list_products_url
+
+
+def extract_pages_category(category_url):
+    """
         Extract all pages from the category
     """
 
+    soup = extract_html(category_url)
     pages = soup.find("li", class_="current")
     if pages is not None:
         pages = pages.text.strip()
         y = pages[10]
         y = int(y) + 1
-        list_page = []
+        list_pages = []
 
         for i in range(1, y):
-            list_page.append(category_url.replace("index.html", "") + f"page-{i}.html")
+            list_pages.append(category_url.replace(
+                "index.html", "") + f"page-{i}.html")
 
-        return list_page
+        return list_pages
 
     else:
-        list_page = [category_url]
+        list_pages = [category_url]
 
-        return list_page
+        return list_pages
 
 
-def extract_books_url(soup):
+def extract_books_url(soup_page):
     """
-    # Get books url from all category pages
     Get all the product_url from the full category
     """
 
-    list_url = []
-    h3 = soup.find("ol", class_="row").find_all("h3")
+    list_product_url = []
+    h3 = soup_page.find("ol", class_="row").find_all("h3")
 
     for h in h3:
         a = h.find("a")
-        href = a["href"].replace("../../../", "https://books.toscrape.com/catalogue/")
-        list_url.append(href)
+        href = a["href"].replace(
+            "../../../", "https://books.toscrape.com/catalogue/")
+        list_product_url.append(href)
 
-    return list_url
+    return list_product_url
 
 
-# Get data from a book
-def extract_data(soup):
+def extract_data(product_url):
     """
     Extract data from the book's url
     """
-
+    soup = extract_html(product_url)
     table = soup.find("table", {"class": "table table-striped"})
 
     data = {}
@@ -119,6 +141,7 @@ def extract_data(soup):
     data["review_rating"] = star_rating + " Star(s)"
 
     img = soup.find("div", {"class": "item active"}).find("img")
-    data["image_url"] = img["src"].replace("../../", "https://books.toscrape.com/")
+    data["image_url"] = img["src"].replace(
+        "../../", "https://books.toscrape.com/")
 
     return data
