@@ -1,7 +1,5 @@
 from src.extract import *
 from src.save import *
-from src.scrap import *
-
 from src.utils import *
 
 

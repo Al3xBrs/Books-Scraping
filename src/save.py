@@ -2,7 +2,6 @@ import requests
 import shutil
 
 from src.utils import *
-from src.extract import extract_data
 
 
 def write_data_csv(data, f):
