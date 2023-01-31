@@ -1,19 +1,5 @@
 from src.utils import *
 from src.scrap import extract_html
-from bs4 import BeautifulSoup
-
-
-def extract_data_category(category_url):
-    """
-    Extract data from the category
-    """
-
-    category = {}
-    soup = extract_html(category_url)
-    category['name'] = soup.find('li', class_='active').text
-    category['pages'] = extract_pages_category(category_url)
-
-    return category
 
 
 def extract_url_categories(url):
@@ -36,16 +22,17 @@ def extract_url_categories(url):
     return list_categories
 
 
-def extract_products_urls(list_page):
+def extract_data_category(category_url):
     """
-    Extract url products page from each category page
+    Extract data from the category
     """
 
-    for page in list_page:
-        soup_page = extract_html(page)
-        list_products_url = extract_books_url(soup_page)
+    category = {}
+    soup = extract_html(category_url)
+    category['name'] = soup.find('li', class_='active').text
+    category['pages'] = extract_pages_category(category_url)
 
-    return list_products_url
+    return category
 
 
 def extract_pages_category(category_url):
@@ -71,6 +58,18 @@ def extract_pages_category(category_url):
         list_pages = [category_url]
 
         return list_pages
+
+
+def extract_products_urls(list_page):
+    """
+    Extract url products page from each category page
+    """
+
+    for page in list_page:
+        soup_page = extract_html(page)
+        list_products_url = extract_books_url(soup_page)
+
+    return list_products_url
 
 
 def extract_books_url(soup_page):

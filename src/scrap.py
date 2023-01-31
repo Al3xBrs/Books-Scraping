@@ -1,8 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 
-from src.utils import *
-
 
 def extract_html(url):
     """
