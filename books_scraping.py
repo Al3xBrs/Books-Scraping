@@ -21,7 +21,7 @@ def main(url):
                 data = extract_data(product_url)
                 save_img(data["image_url"], data)
                 write_data_csv(data, f)
-            print(f"State : {state}")
+            print(f"State : {state} - {data_category['name']}")
             state += 1
 
 
