@@ -21,8 +21,8 @@ def main(url):
                 data = extract_data(product_url)
                 save_img(data["image_url"], data)
                 write_data_csv(data, f)
-                state += 1
-        print(f"State : {state}")
+            state += 1
+            print(f"State : {state}")
 
 
 if __name__ == "__main__":
