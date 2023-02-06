@@ -7,10 +7,10 @@ Il permet d'enregistrer les informations des livres dans un fichier _.csv_ pour 
 Comment ça marche ?
 ----------
 
-Le script énumère toutes les catégories de livres présentes sur la page d'accueil et récupère les _url_ de tous les produits de chaque page de chaque catégorie. Il vient ensuite charger les données des produits dans un sous-dossier _data_ sous la forme d'un fichier _.csv_ correspondant à la catégorie énumérée. Chaque image des livres est chargée dans un sous-dossier _assets_ sous la forme d'un fichier _.png_.
+Le script énumère toutes les catégories de livres présentes sur la page d'accueil et récupère les _urls_ de tous les produits de chaque page de chaque catégorie. Il vient ensuite charger les données des produits dans un sous-dossier _data_ sous la forme d'un fichier _.csv_ correspondant à la catégorie énumérée. Chaque image des livres est chargée dans un sous-dossier _assets_ sous la forme d'un fichier _.png_.
 
 
-# Pré-requis.
+# Pré-requis
 
 ## Installer **git** et **python3** sur son ordinateur.
 
