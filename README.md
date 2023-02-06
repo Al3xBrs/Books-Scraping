@@ -1,7 +1,7 @@
 Books-Scraping 
 =======
 
-Ce code s'appplique uniquement sur le site _https://books.toscrape.com_._  
+Ce code s'appplique uniquement sur le site _https://books.toscrape.com_.  
 Il permet d'enregistrer les informations des livres dans un fichier _.csv_ pour chaque catégorie de livre. 
 
 Comment ça marche ?
