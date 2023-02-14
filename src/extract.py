@@ -64,10 +64,10 @@ def extract_products_urls(list_page):
     """
     Extract url products page from each category page
     """
-
+    list_products_url = []
     for page in list_page:
         soup_page = extract_html(page)
-        list_products_url = extract_books_url(soup_page)
+        list_products_url.extend(extract_books_url(soup_page))
 
     return list_products_url
 
@@ -107,16 +107,20 @@ def extract_data(product_url):
     data["price_including_tax"] = (
         table.find("th", text="Price (incl. tax)")
         .find_next_sibling("td")
-        .text.replace("Â", "")
+        .text.replace("Â", "").replace("£", "")
     )
     data["price_excluding_tax"] = (
         table.find("th", text="Price (excl. tax)")
         .find_next_sibling("td")
-        .text.replace("Â", "")
+        .text.replace("Â", "").replace("£", "")
     )
-    data["number_available"] = (
-        table.find("th", text="Availability").find_next_sibling("td").text
+
+    number_available = (
+        table.find("th", text="Availability").find_next_sibling(
+            "td").text.replace("(", "")
     )
+    number = number_available.split()
+    data["number_available"] = number[2]
 
     description = soup.find("div", {"id": "product_description"})
     if description is not None:
@@ -137,7 +141,20 @@ def extract_data(product_url):
     # Find star-rating class and take its score
     rating = soup.find("p", class_="star-rating")
     star_rating = rating["class"][1]
-    data["review_rating"] = star_rating + " Star(s)"
+    if star_rating == "Zero":
+        star_rating = 0
+    if star_rating == "One":
+        star_rating = 1
+    if star_rating == "Two":
+        star_rating = 2
+    if star_rating == "Three":
+        star_rating = 3
+    if star_rating == "Four":
+        star_rating = 4
+    if star_rating == "Five":
+        star_rating = 5
+
+    data["review_rating"] = str(star_rating)
 
     img = soup.find("div", {"class": "item active"}).find("img")
     data["image_url"] = img["src"].replace(
